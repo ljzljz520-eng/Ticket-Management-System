@@ -43,7 +43,7 @@
       <el-table :data="tableData" v-loading="loading" stripe style="width: 100%">
         <el-table-column prop="id" label="ID" width="70" />
         <el-table-column prop="username" label="用户名" width="120" />
-        <el-table-column prop="description" label="操作描述" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="operation" label="操作描述" min-width="200" show-overflow-tooltip />
         <el-table-column prop="method" label="请求方法" width="100" />
         <el-table-column prop="ip" label="IP地址" width="140" />
         <el-table-column label="状态" width="90">
@@ -53,7 +53,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="170" />
+        <el-table-column prop="createdAt" label="创建时间" width="170" />
       </el-table>
 
       <!-- 分页 -->
@@ -95,7 +95,7 @@ async function loadData() {
       page: query.page,
       size: query.size,
       username: query.username || undefined,
-      description: query.description || undefined
+      operation: query.description || undefined
     }
     if (query.dateRange?.length === 2) {
       params.startDate = query.dateRange[0]

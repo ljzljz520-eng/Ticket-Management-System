@@ -73,13 +73,14 @@
               :type="row.status === 1 ? 'warning' : 'success'"
               link
               @click="handleToggle(row)"
+              :disabled="row.username === 'admin'"
             >
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button type="primary" link @click="handleResetPwd(row)">重置密码</el-button>
-            <el-popconfirm title="确定删除该用户？" @confirm="handleDelete(row.id)">
+            <el-popconfirm title="确定删除该用户？" @confirm="handleDelete(row.id)" :disabled="row.username === 'admin'">
               <template #reference>
-                <el-button type="danger" link>删除</el-button>
+                <el-button type="danger" link :disabled="row.username === 'admin'">删除</el-button>
               </template>
             </el-popconfirm>
           </template>
@@ -190,11 +191,17 @@ const createRules: FormRules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6位', trigger: 'blur' }
   ],
+  phone: [
+    { required: false, pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
 const editRules: FormRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  phone: [
+    { required: false, pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
