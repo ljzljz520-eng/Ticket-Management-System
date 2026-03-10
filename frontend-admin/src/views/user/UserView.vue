@@ -77,11 +77,16 @@
               {{ row.status === 1 ? '禁用' : '启用' }}
             </el-button>
             <el-button type="primary" link @click="handleResetPwd(row)">重置密码</el-button>
-            <el-popconfirm title="确定删除该用户？" @confirm="handleDelete(row.id)">
+            <el-popconfirm
+              v-if="row.username !== 'admin'"
+              title="确定删除该用户？"
+              @confirm="handleDelete(row.id)"
+            >
               <template #reference>
                 <el-button type="danger" link>删除</el-button>
               </template>
             </el-popconfirm>
+            <el-button v-else type="danger" link disabled>删除</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -190,11 +195,19 @@ const createRules: FormRules = {
     { required: true, message: '请输入密码', trigger: 'blur' },
     { min: 6, message: '密码至少6位', trigger: 'blur' }
   ],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 
 const editRules: FormRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+  ],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }]
 }
 

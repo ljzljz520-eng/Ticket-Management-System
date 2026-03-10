@@ -25,6 +25,7 @@ public class UserDTO {
     @Size(max = 20, message = "姓名长度不能超过20个字符")
     private String realName;
 
+    @NotBlank(message = "手机号不能为空")
     @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     private String phone;
 
