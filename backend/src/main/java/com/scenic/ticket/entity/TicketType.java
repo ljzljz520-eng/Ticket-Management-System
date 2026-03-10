@@ -53,4 +53,24 @@ public class TicketType {
      */
     @TableField(exist = false)
     private String scenicSpotName;
+
+    /**
+     * 售价（前端字段名兼容）
+     */
+    @TableField(exist = false)
+    private BigDecimal sellPrice;
+
+    /**
+     * 今日已售（前端字段名兼容）
+     */
+    @TableField(exist = false)
+    private Integer todaySold;
+
+    public BigDecimal getSellPrice() {
+        return this.price;
+    }
+
+    public Integer getTodaySold() {
+        return this.soldToday;
+    }
 }

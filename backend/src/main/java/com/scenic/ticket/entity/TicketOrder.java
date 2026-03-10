@@ -73,4 +73,14 @@ public class TicketOrder {
      */
     @TableField(exist = false)
     private String operatorName;
+
+    /**
+     * 创建时间（前端字段名兼容）
+     */
+    @TableField(exist = false)
+    private LocalDateTime createTime;
+
+    public LocalDateTime getCreateTime() {
+        return this.createdAt;
+    }
 }
