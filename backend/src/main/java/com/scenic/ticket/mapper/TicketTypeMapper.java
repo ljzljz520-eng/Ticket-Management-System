@@ -26,4 +26,10 @@ public interface TicketTypeMapper extends BaseMapper<TicketType> {
     @Update("UPDATE ticket_type SET stock = stock + #{quantity}, sold_today = GREATEST(sold_today - #{quantity}, 0) " +
             "WHERE id = #{id}")
     int restoreStock(@Param("id") Long id, @Param("quantity") int quantity);
+
+    /**
+     * 重置今日已售数量
+     */
+    @Update("UPDATE ticket_type SET sold_today = 0")
+    int resetSoldToday();
 }

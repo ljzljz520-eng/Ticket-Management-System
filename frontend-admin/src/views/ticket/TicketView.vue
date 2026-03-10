@@ -61,11 +61,11 @@
         <el-table-column label="类别" width="100">
           <template #default="{ row }">{{ categoryMap[row.category] || row.category }}</template>
         </el-table-column>
-        <el-table-column prop="sellPrice" label="售价" width="90" align="right" />
+        <el-table-column prop="price" label="售价" width="90" align="right" />
         <el-table-column prop="originalPrice" label="原价" width="90" align="right" />
         <el-table-column prop="stock" label="库存" width="80" align="right" />
         <el-table-column prop="dailyLimit" label="每日限额" width="100" align="right" />
-        <el-table-column prop="todaySold" label="今日已售" width="90" align="right" />
+        <el-table-column prop="soldToday" label="今日已售" width="90" align="right" />
         <el-table-column label="状态" width="90">
           <template #default="{ row }">
             <el-tag :type="row.status === 1 ? 'success' : 'info'" effect="light">
@@ -142,8 +142,8 @@
         </el-form-item>
         <el-row :gutter="16">
           <el-col :span="12">
-            <el-form-item label="售价" prop="sellPrice">
-              <el-input-number v-model="form.sellPrice" :min="0" :precision="2" style="width: 100%" />
+            <el-form-item label="售价" prop="price">
+              <el-input-number v-model="form.price" :min="0" :precision="2" style="width: 100%" />
             </el-form-item>
           </el-col>
           <el-col :span="12">
@@ -239,7 +239,7 @@ const form = reactive({
   scenicSpotId: undefined as number | undefined,
   name: '',
   description: '',
-  sellPrice: 0,
+  price: 0,
   originalPrice: 0,
   stock: 0,
   dailyLimit: 0,
@@ -253,7 +253,7 @@ const rules: FormRules = {
   scenicSpotId: [{ required: true, message: '请选择景区', trigger: 'change' }],
   name: [{ required: true, message: '请输入票种名称', trigger: 'blur' }],
   category: [{ required: true, message: '请选择类别', trigger: 'change' }],
-  sellPrice: [{ required: true, message: '请输入售价', trigger: 'blur' }],
+  price: [{ required: true, message: '请输入售价', trigger: 'blur' }],
   stock: [{ required: true, message: '请输入库存', trigger: 'blur' }]
 }
 
@@ -298,7 +298,7 @@ function openDialog(row?: any) {
       scenicSpotId: row.scenicSpotId,
       name: row.name,
       description: row.description,
-      sellPrice: row.sellPrice,
+      price: row.price,
       originalPrice: row.originalPrice,
       stock: row.stock,
       dailyLimit: row.dailyLimit ?? 0,
@@ -310,7 +310,7 @@ function openDialog(row?: any) {
       scenicSpotId: undefined,
       name: '',
       description: '',
-      sellPrice: 0,
+      price: 0,
       originalPrice: 0,
       stock: 0,
       dailyLimit: 0,
