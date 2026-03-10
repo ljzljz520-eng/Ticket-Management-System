@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scenic.ticket.mapper.CheckInRecordMapper">
+
+    <select id="selectRecordPage" resultType="com.scenic.ticket.entity.CheckInRecord">
+        SELECT cr.*,
+               s.name AS scenic_spot_name,
+               u.real_name AS operator_name
+        FROM check_in_record cr
+        LEFT JOIN scenic_spot s ON cr.scenic_spot_id = s.id
+        LEFT JOIN sys_user u ON cr.operator_id = u.id
+        WHERE 1=1
+        <if test="scenicSpotId != null">
+            AND cr.scenic_spot_id = #{scenicSpotId}
+        </if>
+        <if test="status != null and status != ''">
+            AND cr.status = #{status}
+        </if>
+        <if test="date != null">
+            AND DATE(cr.check_in_time) = #{date}
+        </if>
+        ORDER BY cr.check_in_time DESC
+    </select>
+
+    <select id="todayStatistics" resultType="java.util.Map">
+        SELECT
+            COUNT(*) AS total_check_in,
+            SUM(CASE WHEN status = 'CHECKED_IN' THEN 1 ELSE 0 END) AS currently_in,
+            SUM(CASE WHEN status = 'CHECKED_OUT' THEN 1 ELSE 0 END) AS checked_out
+        FROM check_in_record
+        WHERE DATE(check_in_time) = #{date}
+    </select>
+
+    <select id="visitorStatisticsByDate" resultType="java.util.Map">
+        SELECT DATE(check_in_time) AS date,
+               COUNT(*) AS visitor_count
+        FROM check_in_record
+        WHERE 1=1
+        <if test="startDate != null">
+            AND DATE(check_in_time) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(check_in_time) &lt;= #{endDate}
+        </if>
+        GROUP BY DATE(check_in_time)
+        ORDER BY DATE(check_in_time)
+    </select>
+
+</mapper>

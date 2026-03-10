@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.scenic.ticket.mapper.TicketOrderMapper">
+
+    <resultMap id="orderResultMap" type="com.scenic.ticket.entity.TicketOrder">
+        <id property="id" column="id"/>
+        <result property="orderNo" column="order_no"/>
+        <result property="userId" column="user_id"/>
+        <result property="scenicSpotId" column="scenic_spot_id"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="actualAmount" column="actual_amount"/>
+        <result property="status" column="status"/>
+        <result property="visitorName" column="visitor_name"/>
+        <result property="visitorPhone" column="visitor_phone"/>
+        <result property="visitorIdCard" column="visitor_id_card"/>
+        <result property="visitDate" column="visit_date"/>
+        <result property="remark" column="remark"/>
+        <result property="paidAt" column="paid_at"/>
+        <result property="cancelledAt" column="cancelled_at"/>
+        <result property="refundedAt" column="refunded_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="scenicSpotName" column="scenic_spot_name"/>
+        <result property="operatorName" column="operator_name"/>
+        <collection property="items" ofType="com.scenic.ticket.entity.TicketOrderItem">
+            <id property="id" column="item_id"/>
+            <result property="orderId" column="item_order_id"/>
+            <result property="ticketTypeId" column="item_ticket_type_id"/>
+            <result property="ticketName" column="item_ticket_name"/>
+            <result property="price" column="item_price"/>
+            <result property="quantity" column="item_quantity"/>
+            <result property="subtotal" column="item_subtotal"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectOrderPage" resultType="com.scenic.ticket.entity.TicketOrder">
+        SELECT o.*,
+               s.name AS scenic_spot_name,
+               u.real_name AS operator_name
+        FROM ticket_order o
+        LEFT JOIN scenic_spot s ON o.scenic_spot_id = s.id
+        LEFT JOIN sys_user u ON o.user_id = u.id
+        WHERE o.deleted = 0
+        <if test="status != null and status != ''">
+            AND o.status = #{status}
+        </if>
+        <if test="orderNo != null and orderNo != ''">
+            AND o.order_no LIKE CONCAT('%', #{orderNo}, '%')
+        </if>
+        <if test="visitorName != null and visitorName != ''">
+            AND o.visitor_name LIKE CONCAT('%', #{visitorName}, '%')
+        </if>
+        <if test="scenicSpotId != null">
+            AND o.scenic_spot_id = #{scenicSpotId}
+        </if>
+        <if test="startDate != null">
+            AND o.created_at &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND o.created_at &lt;= #{endDate}
+        </if>
+        ORDER BY o.created_at DESC
+    </select>
+
+    <select id="selectOrderDetail" resultMap="orderResultMap">
+        SELECT o.*,
+               s.name AS scenic_spot_name,
+               u.real_name AS operator_name,
+               oi.id AS item_id,
+               oi.order_id AS item_order_id,
+               oi.ticket_type_id AS item_ticket_type_id,
+               oi.ticket_name AS item_ticket_name,
+               oi.price AS item_price,
+               oi.quantity AS item_quantity,
+               oi.subtotal AS item_subtotal
+        FROM ticket_order o
+        LEFT JOIN scenic_spot s ON o.scenic_spot_id = s.id
+        LEFT JOIN sys_user u ON o.user_id = u.id
+        LEFT JOIN ticket_order_item oi ON o.id = oi.order_id
+        WHERE o.id = #{id} AND o.deleted = 0
+    </select>
+
+    <select id="selectOrderByNo" resultMap="orderResultMap">
+        SELECT o.*,
+               s.name AS scenic_spot_name,
+               u.real_name AS operator_name,
+               oi.id AS item_id,
+               oi.order_id AS item_order_id,
+               oi.ticket_type_id AS item_ticket_type_id,
+               oi.ticket_name AS item_ticket_name,
+               oi.price AS item_price,
+               oi.quantity AS item_quantity,
+               oi.subtotal AS item_subtotal
+        FROM ticket_order o
+        LEFT JOIN scenic_spot s ON o.scenic_spot_id = s.id
+        LEFT JOIN sys_user u ON o.user_id = u.id
+        LEFT JOIN ticket_order_item oi ON o.id = oi.order_id
+        WHERE o.order_no = #{orderNo} AND o.deleted = 0
+    </select>
+
+    <select id="sumAmountByDateRange" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(actual_amount), 0)
+        FROM ticket_order
+        WHERE deleted = 0
+        <if test="status != null and status != ''">
+            AND status = #{status}
+        </if>
+        <if test="startDate != null">
+            AND DATE(created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(created_at) &lt;= #{endDate}
+        </if>
+    </select>
+
+    <select id="statisticsByDate" resultType="java.util.Map">
+        SELECT DATE(created_at) AS date,
+               COUNT(*) AS order_count,
+               COALESCE(SUM(actual_amount), 0) AS total_amount,
+               COALESCE(SUM(CASE WHEN status = 'PAID' OR status = 'USED' THEN actual_amount ELSE 0 END), 0) AS paid_amount
+        FROM ticket_order
+        WHERE deleted = 0
+        <if test="startDate != null">
+            AND DATE(created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(created_at) &lt;= #{endDate}
+        </if>
+        GROUP BY DATE(created_at)
+        ORDER BY DATE(created_at)
+    </select>
+
+    <select id="statisticsByTicketType" resultType="java.util.Map">
+        SELECT tt.name AS ticket_name,
+               tt.category,
+               COALESCE(SUM(oi.quantity), 0) AS total_quantity,
+               COALESCE(SUM(oi.subtotal), 0) AS total_amount
+        FROM ticket_order_item oi
+        INNER JOIN ticket_order o ON oi.order_id = o.id
+        INNER JOIN ticket_type tt ON oi.ticket_type_id = tt.id
+        WHERE o.deleted = 0 AND o.status IN ('PAID', 'USED')
+        <if test="startDate != null">
+            AND DATE(o.created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(o.created_at) &lt;= #{endDate}
+        </if>
+        GROUP BY tt.id, tt.name, tt.category
+        ORDER BY total_amount DESC
+    </select>
+
+    <select id="statisticsByScenicSpot" resultType="java.util.Map">
+        SELECT s.name AS scenic_name,
+               COUNT(DISTINCT o.id) AS order_count,
+               COALESCE(SUM(o.actual_amount), 0) AS total_amount,
+               COALESCE(SUM(oi.quantity), 0) AS ticket_count
+        FROM ticket_order o
+        INNER JOIN scenic_spot s ON o.scenic_spot_id = s.id
+        LEFT JOIN ticket_order_item oi ON o.id = oi.order_id
+        WHERE o.deleted = 0 AND o.status IN ('PAID', 'USED')
+        <if test="startDate != null">
+            AND DATE(o.created_at) &gt;= #{startDate}
+        </if>
+        <if test="endDate != null">
+            AND DATE(o.created_at) &lt;= #{endDate}
+        </if>
+        GROUP BY s.id, s.name
+        ORDER BY total_amount DESC
+    </select>
+
+</mapper>
